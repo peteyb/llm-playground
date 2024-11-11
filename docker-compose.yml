@@ -1,0 +1,20 @@
+version: "3"
+services:
+  web:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+      ssh:
+        - default
+    command: "sleep infinity"
+    container_name: llm-playground
+    user: playground
+    volumes:
+      - ./app:/app
+      - ./:/workspace
+    tty: true
+
+networks:
+  default:
+    external: true
+    name: peteyb_network
