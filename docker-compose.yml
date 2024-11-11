@@ -9,6 +9,7 @@ services:
     command: "sleep infinity"
     container_name: llm-playground
     user: playground
+    env_file: ".env"
     volumes:
       - ./app:/app
       - ./:/workspace
