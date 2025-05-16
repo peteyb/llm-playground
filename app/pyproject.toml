@@ -11,10 +11,13 @@ python = "3.12.*"
 openai = "1.76.*"
 openai-agents = "^0.0.15"
 
-
 [tool.poetry.group.dev.dependencies]
 ruff = "0.7.*"
 rich = "13.9.*"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
 
 [build-system]
 requires = ["poetry-core"]

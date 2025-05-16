@@ -1,19 +1,14 @@
 import json
+from urllib.parse import quote_plus
 
 import requests
 from openai import OpenAI
 
 
-def get_weather(latitude, longitude):
-    response = requests.get(
-        f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&current=temperature_2m,wind_speed_10m&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m"
-    )
-    data = response.json()
-    return data["current"]["temperature_2m"]
-
-
 def get_keystone_organisation(name):
-    response = requests.get(f"https://kauth.thekeysupport.com/api/v2/organisations/?name={name}")
+    url = f"https://kauth.qa-keylabs.com/api/v2/organisations/?name={quote_plus(name)}"
+    print(f"URL: {url}")
+    response = requests.get(url)
     data = response.json()
     if not data["results"]:
         raise ValueError("No organisation found")
@@ -25,22 +20,30 @@ client = OpenAI()
 tools = [
     {
         "type": "function",
-        "name": "get_weather",
-        "description": "Get current temperature for provided coordinates in celsius.",
+        "name": "get_keystone_organisation",
+        "description": "Retrieves information about a keystone organisation based on its name.",
+        "strict": True,
         "parameters": {
             "type": "object",
+            "required": ["name"],
             "properties": {
-                "latitude": {"type": "number"},
-                "longitude": {"type": "number"},
+                "name": {
+                    "type": "string",
+                    "description": "The name of the organisation to retrieve information for.",
+                }
             },
-            "required": ["latitude", "longitude"],
             "additionalProperties": False,
         },
-        "strict": True,
     },
 ]
 
-input_messages = [{"role": "user", "content": "What's the weather like in Bude today?"}]
+input_messages = [
+    {"role": "developer", "content": "Be conscise, do not follow up with any extras prompts."},
+    {
+        "role": "user",
+        "content": "Can you tell me the postcode for The Key Employees and when they last completed onboarding in Keystone?",
+    },
+]
 
 response = client.responses.create(
     model="gpt-4.1",
@@ -54,12 +57,12 @@ tool_call = response.output[0]
 args = json.loads(tool_call.arguments)
 print(f"Tool call: {tool_call.name} with arguments: {args}")
 
-result = get_weather(args["latitude"], args["longitude"])
+result = get_keystone_organisation(args["name"])
 
 
 input_messages.append(tool_call)  # append model's function call message
-input_messages.append(
-    {  # append result message
+input_messages.append(  # append result message
+    {
         "type": "function_call_output",
         "call_id": tool_call.call_id,
         "output": str(result),
