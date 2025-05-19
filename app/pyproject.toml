@@ -10,6 +10,7 @@ package-mode = false
 python = "3.12.*"
 openai = "1.76.*"
 openai-agents = "^0.0.15"
+pydantic = "2.11.*"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "0.7.*"
